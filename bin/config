@@ -13,7 +13,7 @@
 # Required to download certain gated models.
 # Generate a token at https://huggingface.co/settings/tokens
 # Leave blank to use cached credentials from `huggingface-cli login`.
-export HF_TOKEN="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"
+export HF_TOKEN=""
 
 # ── Model ─────────────────────────────────────────────────────────────────────
 # HuggingFace model ID to benchmark.
