@@ -1,0 +1,13 @@
+pandas>=2.0
+datasets>=2.14
+huggingface_hub>=0.20
+numpy>=1.24
+pyarrow>=14.0
+torch>=2.0
+transformers>=4.0.0
+accelerate>=0.2.0
+pyRAPL>=0.2.3
+
+#Optional requirements for data visualization
+matplotlib
+wordcloud

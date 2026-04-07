@@ -1,0 +1,113 @@
+#!/usr/bin/env bash
+# bin/run — Run the LLMEnergyConsumption experiment
+set -eo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$REPO_ROOT"
+
+# ── Load config ───────────────────────────────────────────────────────────────
+config="$REPO_ROOT/bin/config"
+if [[ ! -f "$config" ]]; then
+  echo "ERROR: bin/config not found. Expected at: $config"
+  exit 1
+fi
+# shellcheck disable=SC1090
+source "$config"
+echo "==> config loaded from bin/config"
+
+# ── Use existing virtual environment or create a new one ─────────────────────
+VENV="$REPO_ROOT/.venv"
+ACTIVATE="$VENV/bin/activate"
+
+if [[ -f "$ACTIVATE" ]]; then
+  echo "==> Found existing virtual environment at $VENV"
+  # shellcheck disable=SC1090
+  source "$ACTIVATE"
+  echo "==> Activated existing .venv"
+else
+  # Deactivate current venv if one is active
+  if [[ -n "${VIRTUAL_ENV:-}" ]]; then
+    echo "==> Deactivating currently active virtual environment: $VIRTUAL_ENV"
+    deactivate || true
+  fi
+
+  echo "==> Creating new virtual environment at $VENV"
+  python3 -m venv "$VENV"
+
+  # shellcheck disable=SC1090
+  source "$ACTIVATE"
+  echo "==> Activated new .venv"
+fi
+
+# ── Always ensure requirements are satisfied ──────────────────────────────────
+echo "==> Syncing requirements"
+"$VENV/bin/python" -m pip install --upgrade pip
+"$VENV/bin/python" -m pip install -r "$REPO_ROOT/requirements.txt"
+
+# Explicit path to Python in the venv
+PYTHON="$VENV/bin/python"
+
+# ── Validate dataset ──────────────────────────────────────────────────────────
+"$PYTHON" DatasetGenerator.py
+if [[ ! -f "$DATASET_PATH" ]]; then
+  echo ""
+  echo "ERROR: Dataset not found at: $DATASET_PATH"
+  echo ""
+  echo "  Generate it first by running:"
+  echo "    python DatasetGenerator.py"
+  echo ""
+  exit 1
+fi
+echo "==> Dataset found: $DATASET_PATH"
+
+# ── Validate HF token (warn if missing; model download may still work from cache) ──
+if [[ -z "${HF_TOKEN:-}" ]]; then
+  echo "    [WARN] HF_TOKEN is not set in bin/config."
+  echo "           Falling back to cached huggingface-cli credentials."
+  echo "           If the model download fails, run:  huggingface-cli login"
+fi
+
+# ── Create output directory if needed ────────────────────────────────────────
+OUTPUT_DIR="$(dirname "$OUTPUT_PATH")"
+if [[ "$OUTPUT_DIR" != "." && ! -d "$OUTPUT_DIR" ]]; then
+  mkdir -p "$OUTPUT_DIR"
+  echo "==> Created output directory: $OUTPUT_DIR"
+fi
+
+# ── Linux: offer RAPL permission hint ────────────────────────────────────────
+if [[ "$(uname -s)" == "Linux" ]]; then
+  RAPL_PATH="/sys/class/powercap/intel-rapl"
+  if [[ -d "$RAPL_PATH" ]] && [[ ! -r "$RAPL_PATH" ]]; then
+    echo ""
+    echo "    [WARN] Intel RAPL interface found but not readable."
+    echo "           For accurate CPU power readings, run:"
+    echo "             sudo chmod -R a+r /sys/class/powercap/intel-rapl/"
+    echo "           Falling back to /proc/stat × TDP estimate (CPU_TDP_WATTS=${CPU_TDP_WATTS})."
+    echo ""
+  fi
+fi
+
+# ── Run experiment ────────────────────────────────────────────────────────────
+echo ""
+echo "==> Starting experiment"
+echo "    Model         : $MODEL_NAME"
+echo "    Dataset       : $DATASET_PATH"
+echo "    Output        : $OUTPUT_PATH"
+echo "    Max new tokens: $MAX_NEW_TOKENS"
+echo "    CPU TDP (W)   : $CPU_TDP_WATTS"
+echo ""
+
+# Export config as env vars for the Python script
+export HF_TOKEN="$HF_TOKEN"
+export MODEL_NAME="$MODEL_NAME"
+export MAX_NEW_TOKENS="$MAX_NEW_TOKENS"
+export DATASET_PATH="$DATASET_PATH"
+export OUTPUT_PATH="$OUTPUT_PATH"
+export CPU_TDP_WATTS="$CPU_TDP_WATTS"
+export POWER_INTERVAL_MS="$POWER_INTERVAL_MS"
+
+# Run experiment
+"$PYTHON" "$REPO_ROOT/llama_single_prompt.py"
+
+echo ""
+echo "==> Experiment complete. Results saved to: $OUTPUT_PATH"

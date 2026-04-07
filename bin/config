@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# bin/config — Environment configuration for LLMEnergyConsumption
+#
+# This file is sourced by bin/run (and optionally bin/install).
+# Edit the values below to match your environment before running the experiment.
+#
+# Usage:
+#   source bin/config          # load variables into your current shell
+#   bin/run                    # run/config is sourced automatically by bin/run
+
+# ── HuggingFace ───────────────────────────────────────────────────────────────
+# Your HuggingFace access token.
+# Required to download certain gated models.
+# Generate a token at https://huggingface.co/settings/tokens
+# Leave blank to use cached credentials from `huggingface-cli login`.
+export HF_TOKEN=""
+
+# ── Model ─────────────────────────────────────────────────────────────────────
+# HuggingFace model ID to benchmark.
+export MODEL_NAME="facebook/opt-125m"
+
+# Maximum number of new tokens the model may generate per prompt.
+export MAX_NEW_TOKENS=256
+
+# ── Dataset ───────────────────────────────────────────────────────────────────
+# Path to the input CSV (must contain columns: id, prompt).
+export DATASET_PATH="Data/dataset.csv"
+
+# ── Output ────────────────────────────────────────────────────────────────────
+# Path where results.csv will be written.
+export OUTPUT_PATH="results.csv"
+
+# ── Hardware ──────────────────────────────────────────────────────────────────
+# CPU Thermal Design Power (TDP) in Watts.
+# Used as a fallback for CPU power estimation when Intel RAPL (pyRAPL) is
+# unavailable (e.g. no root access, non-Intel CPU, or macOS/Windows).
+# Set this to your processor's rated TDP. Common values:
+#   Intel Xeon Gold 6154  → 200
+#   Intel Core i9-13900K  → 125
+#   AMD EPYC 7763         → 280
+#   Apple M-series        → 30   (powermetrics used instead; this is a fallback)
+export CPU_TDP_WATTS=150
+
+# ── Power monitor polling interval ───────────────────────────────────────────
+# How often (in milliseconds) the PowerMonitor samples CPU/GPU wattage.
+# Lower values = finer resolution but more overhead. 500 ms is a safe default.
+export POWER_INTERVAL_MS=500
