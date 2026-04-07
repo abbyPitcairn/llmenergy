@@ -25,13 +25,12 @@ To run the program:
 
 * Download project files.
 * Generate and save a HuggingFace.com access token.
-* Run the Python commands below, and enter HF token when prompted.
-* Now your dataset is generated at the output csv file.
+* Copy/paste your HF token into `bin/config`.
+* Navigate to the project directory.
+* Run the command: `./bin/run`.
   
 ```
-pip install -r requirements.txt
-huggingface-cli login
-python DatasetGenerator.py
+./bin/run
 ```
 
 To generate the six data visualization plots, run the command:
@@ -42,7 +41,7 @@ python DataVisualization/GenerateAll.py
 
 Graphs will save to `DataVisualization/Graphs` as .pdf. 
 
-**Note:** it is not necessary to generate the dataset prior to generating the plots, because running the `GenerateAll.py` script will re-generate the dataset. 
+**Note:** data visualization can be done separately from the main experiment and does not require the dataset to be explicitly generated, because running the `GenerateAll.py` script will re-generate the dataset. 
 
 ### Dataset
 
@@ -75,5 +74,6 @@ Not Fully Implemented Yet
 
 * **March 4, 2026:** Initial Release of Dataset Generator
 * **March 10, 2026:** Added Data Visualization Scripts for Graph Generation
-* **March 23, 2025:** Data Visualization Update, Initial Experiment Script Upload
+* **March 23, 2026:** Data Visualization Update, Initial Experiment Script Upload
+* **April 7, 2026:** Moved all files to a new repository due to a broken remote connection, implemented a single prompt experiment. 
 * **May 5, 2026:** Projected Final Release Date
