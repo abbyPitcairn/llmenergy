@@ -1,8 +1,7 @@
 """
-Single-Prompt Power Measurement
+Prompt Power Measurement
 ======================================
-Runs one prompt through a model and prints all power / energy / FLOPs / memory metrics.
-No dataset file required — just set PROMPT and your HF_TOKEN below and run.
+Runs a set of prompts through a model and record all power / energy / FLOPs / memory metrics to a .csv.
 """
 import os
 import re
