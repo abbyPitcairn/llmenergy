@@ -16,7 +16,7 @@ Output columns:
 - length_bucket       : int  in {0,1,2,3} (quartiles by prompt_length)
 - task_type           : int  in {1..6}
 - complexity          : int  in {0,1,2}  (0=low, 1=medium, 2=high)
-- origin              : str  (e.g., "ChatGPT", "code_contests", ...)
+- origin              : str  (e.g., "ChatGPT", "code_contests"...)
 """
 
 import os

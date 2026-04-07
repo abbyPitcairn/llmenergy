@@ -1,6 +1,6 @@
 """
 Prompt Power Measurement
-======================================
+=====================================
 Runs a set of prompts through each model in MODEL_NAMES, NUM_RUNS times each,
 and records all power / energy / FLOPs / memory metrics to per-run .csv files.
 """

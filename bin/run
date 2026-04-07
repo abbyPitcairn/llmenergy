@@ -5,7 +5,7 @@ set -eo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
-# ── Load config ───────────────────────────────────────────────────────────────
+# ── Load config ──────────────────────────────────────────────────────────────
 config="$REPO_ROOT/bin/config"
 if [[ ! -f "$config" ]]; then
   echo "ERROR: bin/config not found. Expected at: $config"
@@ -15,7 +15,7 @@ fi
 source "$config"
 echo "==> config loaded from bin/config"
 
-# ── Use existing virtual environment or create a new one ─────────────────────
+# ── Use existing virtual environment or create a new one ────────────────────
 VENV="$REPO_ROOT/.venv"
 ACTIVATE="$VENV/bin/activate"
 
