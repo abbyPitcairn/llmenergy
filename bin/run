@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# bin/run — Run the LLMEnergyConsumption experiment
+# bin/run — Run the LLMEnergyConsumption experiment!
 set -eo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
