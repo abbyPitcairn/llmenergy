@@ -17,7 +17,7 @@ export HF_TOKEN=""
 
 # ── Model ─────────────────────────────────────────────────────────────────────
 # HuggingFace model ID to benchmark.
-export MODEL_NAME="facebook/opt-125m"
+export MODEL_NAMES="meta-llama/Llama-3.1-8B-Instruct openai-community/gpt2 Qwen/Qwen2.5-7B-Instruct"
 
 # Maximum number of new tokens the model may generate per prompt.
 export MAX_NEW_TOKENS=256
