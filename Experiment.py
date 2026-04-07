@@ -234,6 +234,7 @@ def run_prompt(prompt_id: str, prompt: str, model, tokenizer) -> dict:
             **inputs,
             max_new_tokens=MAX_NEW_TOKENS,
             pad_token_id=tokenizer.pad_token_id,
+            no_repeat_ngram_size=3
         )
 
     t1 = time.perf_counter()

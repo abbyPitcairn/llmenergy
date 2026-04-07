@@ -2,18 +2,11 @@
 
 The aim of this research is to discover the average energy cost of prompting an LLM for text-to-text generation. Currently, this work only generates the dataset to be used. The projected final release date for this project is May 5, 2026.
 
-
 ### Description
 
 First, we develop a dataset representative of the average LLM prompt and then test the energy cost by running this set of prompts through a handful of different LLMs. Finally, these experimental results will be analyzed and a final estimate of energy cost will be given in Watts per hour. 
 
-The dataset is comprised of 500 AI-generated prompts and 500 prompts pulled from verified online datasets. For online datasets, five were selected from the most downloaded page on `HuggingFace.com` with datasets filtered for text-to-text generation and question-answering tasks; then, 100 rows were taken from each dataset using a random seed. These datasets are:
-
-* `HuggingFaceH4/MATH-50`
-* `cais/mmlu`
-* `openai/openai_humaneval`
-* `crownelius/Opus-4.6-Reasoning-3300x`
-* `google/simpleqa-verified`
+The dataset is made of 500 AI-generated prompts and 500 prompts pulled from verified online datasets. For online datasets, five were selected from the most downloaded page on `HuggingFace.com` with datasets filtered for text-to-text generation and question-answering tasks; then, 100 rows were taken from each dataset using a random seed.
 
 The AI-generated prompts come from ChatGPT's online API and must be generated, saved and uploaded separately as a .csv file at `Data/AI_generated_prompts.csv`. 
 
@@ -54,6 +47,14 @@ In the dataset file, there are seven columns:
 * **Complexity**: an annotation by the author to sort prompts by complexity of the task: 0 - low complexity, 1 - medium, 2 - high.
 * **Origin**: the origin of the prompt; either ChatGPT or the name of the HuggingFace dataset.
 
+HuggingFace datasets used:
+
+* `HuggingFaceH4/MATH-50`
+* `cais/mmlu`
+* `openai/openai_humaneval`
+* `crownelius/Opus-4.6-Reasoning-3300x`
+* `google/simpleqa-verified`
+
 #### Example Data:
 
 | Prompt | Prompt Length | Task Type | Complexity | Output Length | Origin |
@@ -64,7 +65,19 @@ In the dataset file, there are seven columns:
 
 ### Experiment
 
-Not Fully Implemented Yet
+In initial experiments, models tried to always generate the maximum number of tokens, even if the final output ends up being the same phrase repeated 10-20 times. 
+To mitigate this, in our model outputs we set `no_repeat_ngram_size=3`. This way, if our model starts generating very repetitive output, 
+it will get cut off. This helps give a more accurate final response, since most conversational LLMs don't repeat themselves as much as the "instruct" versions of models. 
+
+**Experiment Outline:**
+
+* For each of three models:
+  * Repeat the experiment ten times to normalize:
+    * Run 1,000 prompts through the model:
+      * For each prompt, we record:
+        * Power consumption in CPU and GPU
+        * Estimated total FLOPs (floating-point operations)
+        * Memory usage in CPU and GPU
 
 ### Authors
 
