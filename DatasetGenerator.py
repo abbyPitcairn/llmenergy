@@ -23,6 +23,8 @@ import os
 import json
 import pandas as pd
 from typing import Optional, List, Dict
+import re
+import datasets
 
 # ── Load config from environment ────────────────────────────
 LLM_PROMPTS_CSV:     Optional[str] = os.getenv("LLM_PROMPTS_CSV") or None
@@ -141,13 +143,13 @@ def load_hf_prompts() -> pd.DataFrame:
 
         try:
             if cfg["subset"]:
-                ds = load_dataset(
+                ds = datasets.load_dataset(
                     cfg["name"],
                     cfg["subset"],
                     split=cfg["split"],
                 )
             else:
-                ds = load_dataset(
+                ds = datasets.load_dataset(
                     cfg["name"],
                     split=cfg["split"],
                 )
