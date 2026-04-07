@@ -24,7 +24,7 @@ import json
 import pandas as pd
 from typing import Optional, List, Dict
 
-# ── Load config from environment (set by bin/config via bin/run) ──────────────
+# ── Load config from environment ────────────────────────────
 LLM_PROMPTS_CSV:     Optional[str] = os.getenv("LLM_PROMPTS_CSV") or None
 OUTPUT_CSV:          str           = os.getenv("OUTPUT_CSV", "Data/dataset.csv")
 RANDOM_SEED:         int           = int(os.getenv("RANDOM_SEED") or "42")
