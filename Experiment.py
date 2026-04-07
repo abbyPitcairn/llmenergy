@@ -1,28 +1,26 @@
 """
 Prompt Power Measurement
 ======================================
-Runs a set of prompts through a model and record all power / energy / FLOPs / memory metrics to a .csv.
+Runs a set of prompts through each model in MODEL_NAMES, NUM_RUNS times each,
+and records all power / energy / FLOPs / memory metrics to per-run .csv files.
 """
-import os
-import re
-import csv
-import time
-import threading
-import subprocess
-import platform
+
+import os, re, csv, time, threading, subprocess, platform
 from typing import Optional, Tuple
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-# Load environment variables, type cast if necessary
-MODEL_NAME = os.getenv("MODEL_NAME")
-HF_TOKEN = os.getenv("HF_TOKEN")
+# ── Env vars ──────────────────────────────────────────────────────────────────
+# MODEL_NAMES is a space-separated list
+MODEL_NAMES  = os.getenv("MODEL_NAMES", "").split()
+HF_TOKEN     = os.getenv("HF_TOKEN")
 DATASET_PATH = os.getenv("DATASET_PATH")
-OUTPUT_PATH = os.getenv("OUTPUT_PATH")
-CPU_TDP_WATTS = float(os.getenv("CPU_TDP_WATTS", "150"))
-MAX_NEW_TOKENS = int(os.getenv("MAX_NEW_TOKENS", "256"))
+OUTPUT_DIR   = os.getenv("OUTPUT_DIR", "Results")
+CPU_TDP_WATTS  = float(os.getenv("CPU_TDP_WATTS", "150"))
+MAX_NEW_TOKENS = int(os.getenv("MAX_NEW_TOKENS",  "256"))
+NUM_RUNS       = int(os.getenv("NUM_RUNS",         "10"))
 
 # ── Optional dependencies ─────────────────────────────────────────────────────
 try:
@@ -285,38 +283,22 @@ def run_prompt(prompt_id: str, prompt: str, model, tokenizer) -> dict:
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 def main():
-    # Load prompts from CSV
+    if not MODEL_NAMES:
+        raise ValueError("MODEL_NAMES env var is empty. Set it in bin/config.")
     if not DATASET_PATH or not os.path.isfile(DATASET_PATH):
         raise FileNotFoundError(f"Dataset not found at: {DATASET_PATH}")
 
+    # Load prompts once — shared across all models/runs
     with open(DATASET_PATH, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
-        rows = [
-            (row["id"], row["prompt"])
-            for row in reader
-            if row.get("prompt", "").strip()
-        ]
+        rows = [(row["id"], row["prompt"])
+                for row in reader if row.get("prompt", "").strip()]
+    print(f"==> Loaded {len(rows)} prompts from {DATASET_PATH}")
 
-    total = len(rows)
-    print(f"==> Loaded {total} prompts from {DATASET_PATH}")
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-    # Load model & tokenizer once
-    print(f"\nLoading tokenizer and model: {MODEL_NAME} (this may take a minute)…")
-    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, token=HF_TOKEN)
-    if tokenizer.pad_token is None:
-        tokenizer.pad_token = tokenizer.eos_token
-
-    model = AutoModelForCausalLM.from_pretrained(
-        MODEL_NAME,
-        torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
-        device_map="auto",
-        token=HF_TOKEN,
-    )
-    model.eval()
-    print("==> Model loaded\n")
-
-    # Open output CSV and write results row by row
     output_fields = [
+        "run", "model",
         "prompt_id", "input_tokens", "output_tokens",
         "response_sec", "tokens_per_sec",
         "avg_cpu_watts", "avg_gpu_watts", "avg_total_watts",
@@ -325,23 +307,69 @@ def main():
         "peak_gpu_mem_mb", "peak_cpu_mem_mb", "carbon_kg",
     ]
 
-    with open(OUTPUT_PATH, "w", newline="", encoding="utf-8") as out_f:
-        writer = csv.DictWriter(out_f, fieldnames=output_fields)
-        writer.writeheader()
+    # ── Outer loop: models ────────────────────────────────────────────────────
+    for model_name in MODEL_NAMES:
+        # Sanitize model name for use in filenames (replace / with _)
+        model_slug = model_name.replace("/", "_")
 
-        for i, (prompt_id, prompt) in enumerate(rows, start=1):
-            if i % 100 == 0:
-                print(f"[{i}/{total}]")
-            try:
-                result = run_prompt(prompt_id, prompt, model, tokenizer)
-                writer.writerow(result)
-                out_f.flush()
-            except Exception as e:
-                print(f"[ERROR] prompt_id={prompt_id}: {e}")
-                writer.writerow({"prompt_id": prompt_id, **{k: "" for k in output_fields if k != "prompt_id"}})
-                out_f.flush()
+        print(f"\n{'='*60}")
+        print(f"Loading model: {model_name}")
+        print(f"{'='*60}")
 
-    print(f"\n==> Done. Results saved to: {OUTPUT_PATH}")
+        tokenizer = AutoTokenizer.from_pretrained(model_name, token=HF_TOKEN)
+        if tokenizer.pad_token is None:
+            tokenizer.pad_token = tokenizer.eos_token
+
+        model = AutoModelForCausalLM.from_pretrained(
+            model_name,
+            torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
+            device_map="auto",
+            token=HF_TOKEN,
+        )
+        model.eval()
+        print(f"==> Model loaded\n")
+
+        # ── Inner loop: runs ──────────────────────────────────────────────────
+        for run_num in range(1, NUM_RUNS + 1):
+            output_path = os.path.join(OUTPUT_DIR, f"{model_slug}_run_{run_num:02d}.csv")
+            print(f"\n--- {model_name}  |  Run {run_num}/{NUM_RUNS} ---")
+            print(f"    Output: {output_path}")
+
+            with open(output_path, "w", newline="", encoding="utf-8") as out_f:
+                writer = csv.DictWriter(out_f, fieldnames=output_fields)
+                writer.writeheader()
+
+                for i, (prompt_id, prompt) in enumerate(rows, start=1):
+                    if i % 100 == 0:
+                        print(f"  [{i}/{len(rows)}]")
+                    try:
+                        result = run_prompt(prompt_id, prompt, model, tokenizer)
+                        result["run"]   = run_num
+                        result["model"] = model_name
+                        writer.writerow(result)
+                        out_f.flush()
+                    except Exception as e:
+                        print(f"  [ERROR] prompt_id={prompt_id}: {e}")
+                        writer.writerow({
+                            "run": run_num, "model": model_name,
+                            "prompt_id": prompt_id,
+                            **{k: "" for k in output_fields
+                               if k not in ("run", "model", "prompt_id")}
+                        })
+                        out_f.flush()
+
+            print(f"==> Run {run_num} complete → {output_path}")
+
+        # Free VRAM before loading the next model
+        del model
+        del tokenizer
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        print(f"\n==> All {NUM_RUNS} runs complete for {model_name}")
+
+    print(f"\n{'='*60}")
+    print(f"==> All done. {len(MODEL_NAMES)} models × {NUM_RUNS} runs = "
+          f"{len(MODEL_NAMES) * NUM_RUNS} result files in {OUTPUT_DIR}/")
 
 
 if __name__ == "__main__":

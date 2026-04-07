@@ -19,89 +19,25 @@ Output columns:
 - origin              : str  (e.g., "ChatGPT", "code_contests", ...)
 """
 
-from typing import List, Optional
+import os
+import json
 import pandas as pd
-from datasets import load_dataset
-import re
+from typing import Optional, List, Dict
 
-# Config
+# ── Load config from environment (set by bin/config via bin/run) ──────────────
+LLM_PROMPTS_CSV:     Optional[str] = os.getenv("LLM_PROMPTS_CSV") or None
+OUTPUT_CSV:          str           = os.getenv("OUTPUT_CSV", "Data/dataset.csv")
+RANDOM_SEED:         int           = int(os.getenv("RANDOM_SEED") or "42")
+SAMPLES_PER_DATASET: int           = int(os.getenv("SAMPLES_PER_DATASET") or "100")
+LLM_PROMPT_TARGET:   int           = int(os.getenv("LLM_PROMPT_TARGET") or "500")
+MAX_PROMPT_WORDS:    int           = int(os.getenv("MAX_PROMPT_WORDS") or "250")
 
-# Path to generated prompts csv file.
-# Set to None if you want to skip this for now.
-LLM_PROMPTS_CSV: Optional[str] = "Data/AI_generated_prompts.csv"
+# ── Load HF dataset configs from bin/datasets.json ───────────────────────────
+_REPO_ROOT   = os.path.dirname(os.path.abspath(__file__))
+_DATASETS_PATH = os.path.join(_REPO_ROOT, "bin", "datasets.json")
 
-# Where to save the final combined dataset
-OUTPUT_CSV: str = "Data/dataset.csv"
-
-# Random seed for reproducibility
-RANDOM_SEED: int = 42
-
-# Exact number of valid prompts required from each HF dataset
-SAMPLES_PER_DATASET: int = 100
-
-# Exact number of AI-generated prompts required
-LLM_PROMPT_TARGET: int = 500
-
-# The maximum length a prompt can be in the final dataset
-MAX_PROMPT_WORDS = 250
-
-# Task type legend:
-# 1 = Casual
-# 2 = Explanation
-# 3 = Writing
-# 4 = Coding
-# 5 = Productivity
-# 6 = Creative
-
-# HuggingFace dataset configs:
-HF_DATASETS = [
-    {
-        "name": "HuggingFaceH4/MATH-500",
-        "split": "test",
-        "subset": None,
-        "prompt_fields": ["problem"],
-        "task_type": 4,          # Coding / technical help (math)
-        "complexity": 2,         # High complexity
-        "origin": "MATH-500",
-    },
-    {
-        "name": "cais/mmlu",
-        "split": "test",
-        "subset": "all",
-        "prompt_fields": ["question"],
-        "task_type": 2,          # Explanation / learning
-        "complexity": 1,         # High complexity
-        "origin": "MMLU",
-    },
-    {
-        "name": "openai/openai_humaneval",
-        "split": "test",
-        "subset": None,
-        "prompt_fields": ["prompt"],
-        "task_type": 4,          # Coding / technical help
-        "complexity": 2,         # High complexity
-        "origin": "HumanEval",
-    },
-    {
-        "name": "crownelius/Opus-4.6-Reasoning-3300x",
-        "split": "train",
-        "subset": None,
-        "prompt_fields": ["problem"],
-        "task_type": 2,          # Explanation / learning / reasoning
-        "complexity": 2,         # High complexity
-        "origin": "OpusReasoning",
-    },
-    {
-        "name": "google/simpleqa-verified",
-        "split": "eval",
-        "subset": None,
-        "prompt_fields": ["problem"],
-        "task_type": 1,          # Casual / small talk-like Q&A
-        "complexity": 0,
-        "origin": "SimpleQA",
-    },
-]
-
+with open(_DATASETS_PATH) as f:
+    HF_DATASETS: List[Dict] = json.load(f)
 
 # Helper Methods
 
@@ -171,7 +107,7 @@ def extract_prompt_from_example(example: dict, candidates: List[str]) -> Optiona
     return None
 
 
-def is_valid_prompt(text: Optional[str]) -> tuple[bool, int]:
+def is_valid_prompt(text: Optional[str]) -> Tuple[bool, int]:
     """
     Validate a prompt and return (is_valid, word_count).
     A prompt is valid if it is a non-empty string within MAX_PROMPT_WORDS.

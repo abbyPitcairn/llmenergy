@@ -1,0 +1,45 @@
+[    {
+        "name": "HuggingFaceH4/MATH-500",
+        "split": "test",
+        "subset": null,
+        "prompt_fields": ["problem"],
+        "task_type": 4,
+        "complexity": 2,
+        "origin": "MATH-500"
+    },
+    {
+        "name": "cais/mmlu",
+        "split": "test",
+        "subset": "all",
+        "prompt_fields": ["question"],
+        "task_type": 2,
+        "complexity": 1,
+        "origin": "MMLU"
+    },
+    {
+        "name": "openai/openai_humaneval",
+        "split": "test",
+        "subset": null,
+        "prompt_fields": ["prompt"],
+        "task_type": 4,
+        "complexity": 2,
+        "origin": "HumanEval"
+    },
+    {
+        "name": "crownelius/Opus-4.6-Reasoning-3300x",
+        "split": "train",
+        "subset": null,
+        "prompt_fields": ["problem"],
+        "task_type": 2,
+        "complexity": 2,
+        "origin": "OpusReasoning"
+    },
+    {
+        "name": "google/simpleqa-verified",
+        "split": "eval",
+        "subset": null,
+        "prompt_fields": ["problem"],
+        "task_type": 1,
+        "complexity": 0,
+        "origin": "SimpleQA"
+    }]

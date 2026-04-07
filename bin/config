@@ -13,21 +13,27 @@
 # Required to download certain gated models.
 # Generate a token at https://huggingface.co/settings/tokens
 # Leave blank to use cached credentials from `huggingface-cli login`.
-export HF_TOKEN=""
+export HF_TOKEN="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"
 
 # ── Model ─────────────────────────────────────────────────────────────────────
 # HuggingFace model ID to benchmark.
 export MODEL_NAMES="meta-llama/Llama-3.1-8B-Instruct openai-community/gpt2 Qwen/Qwen2.5-7B-Instruct"
 
 # Maximum number of new tokens the model may generate per prompt.
-export MAX_NEW_TOKENS=256
+export MAX_TOKENS=256
 
 # ── Dataset ───────────────────────────────────────────────────────────────────
+# Number of samples per HuggingFace dataset to add to the dataset. Default = 100
+export SAMPLES_PER_DATASET=100
+# Number of prompts to extract from the LLM generated prompts. Default = 500
+LLM_PROMPT_TARGET=500
+# Path to the LLM generated prompts.
+LLM_PROMPTS_CSV="Data/AI_generated_prompts.csv"
 # Path to the input CSV (must contain columns: id, prompt).
 export DATASET_PATH="Data/dataset.csv"
 
 # ── Output ────────────────────────────────────────────────────────────────────
-# Path where results.csv will be written.
+# Path where experiment results will be written.
 export OUTPUT_PATH="results.csv"
 
 # ── Hardware ──────────────────────────────────────────────────────────────────
@@ -45,3 +51,10 @@ export CPU_TDP_WATTS=150
 # How often (in milliseconds) the PowerMonitor samples CPU/GPU wattage.
 # Lower values = finer resolution but more overhead. 500 ms is a safe default.
 export POWER_INTERVAL_MS=500
+
+# ── Number of Runs ───────────────────────────────────────────
+# How many times to run the full experiment, per model.
+export NUM_RUNS=10
+
+# ── Random Seed ───────────────────────────────────────────
+RANDOM_SEED=42
