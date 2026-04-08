@@ -87,8 +87,7 @@ if [[ -z "${HF_TOKEN:-}" ]]; then
 fi
 
 # ── Create output directory if needed ────────────────────────────────────────
-OUTPUT_DIR="$(dirname "$OUTPUT_DIR")"
-if [[ "$OUTPUT_DIR" != "." && ! -d "$OUTPUT_DIR" ]]; then
+if [[ ! -d "$OUTPUT_DIR" ]]; then
   mkdir -p "$OUTPUT_DIR"
   echo "==> Created output directory: $OUTPUT_DIR"
 fi
