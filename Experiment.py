@@ -343,6 +343,12 @@ def main(model_name: str, run_number: int):
                 writer.writerow({"prompt_id": prompt_id, **{k: "" for k in output_fields if k != "prompt_id"}})
                 out_f.flush()
 
+    # Free model and tokenizer from GPU memory before next model loads
+    del model
+    del tokenizer
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+
     print(f"\n==> Done. Results saved to: {output_path}")
 
 if __name__ == "__main__":

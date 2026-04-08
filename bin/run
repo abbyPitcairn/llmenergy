@@ -34,6 +34,7 @@ export POWER_INTERVAL_MS="$POWER_INTERVAL_MS"
 export NUM_RUNS="$NUM_RUNS"
 
 export RANDOM_SEED="$RANDOM_SEED"
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 # ── Use existing virtual environment or create a new one ─────────────────────
 VENV="$REPO_ROOT/.venv"
