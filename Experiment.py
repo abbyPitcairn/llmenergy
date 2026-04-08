@@ -377,7 +377,6 @@ def main():
             device_map="auto",
             offload_buffers=True, # for large models
             token=HF_TOKEN,
-            no_repeat_ngram_size=3
         )
         model.eval()
         print("==> Model loaded\n")
