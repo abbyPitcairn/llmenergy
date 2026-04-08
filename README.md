@@ -20,11 +20,9 @@ To run the program:
 * Generate and save a HuggingFace.com access token.
 * Copy/paste your HF token into `bin/config`.
 * Navigate to the project directory.
-* Run the commands to create the environment, install and run:
+* Run the commands to install and run:
   
 ```
-conda create -n llmenergy python=3.11 -y
-
 ./bin/install
 ./bin/run
 ```
