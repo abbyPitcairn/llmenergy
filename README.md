@@ -57,9 +57,9 @@ Other settings in `config`:
 
 ### Models
 
-* **LLaMA:** meta-llama/Llama-3.1-8B-Instruct 
+* **LLaMA:** meta-llama/Llama-3.1-8B 
 * **GPT2:** openai-community/gpt2 
-* **Qwen:** Qwen/Qwen2.5-7B-Instruct
+* **Qwen:** Qwen/Qwen2.5-7B
 
 ### Dataset
 
