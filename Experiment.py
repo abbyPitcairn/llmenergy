@@ -275,6 +275,8 @@ def run_prompt(prompt_id: str, prompt: str, model, tokenizer) -> dict:
         "peak_cpu_mem_mb":  mem["peak_cpu_mem_mb"],
         "carbon_kg":        carbon_kg if carbon_kg is not None else "",
     }
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 def run_one(model_name: str, run_number: int, model, tokenizer, rows: list):
     """Run one pass of all prompts through an already-loaded model."""
