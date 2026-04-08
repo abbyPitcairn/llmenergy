@@ -275,48 +275,14 @@ def run_prompt(prompt_id: str, prompt: str, model, tokenizer) -> dict:
         "peak_cpu_mem_mb":  mem["peak_cpu_mem_mb"],
         "carbon_kg":        carbon_kg if carbon_kg is not None else "",
     }
-
 # ── Main ──────────────────────────────────────────────────────────────────────
-def main(model_name: str, run_number: int):
-    # Build output path from OUTPUT_DIR, model name, and run number
+def run_one(model_name: str, run_number: int, model, tokenizer, rows: list):
+    """Run one pass of all prompts through an already-loaded model."""
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     safe_model_name = model_name.replace("/", "_")
     output_path = os.path.join(OUTPUT_DIR, f"{safe_model_name}_run_{run_number:02d}.csv")
 
-    # Load prompts from CSV
-    if not DATASET_PATH or not os.path.isfile(DATASET_PATH):
-        raise FileNotFoundError(f"Dataset not found at: {DATASET_PATH}")
-
-    with open(DATASET_PATH, newline="", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        rows = [
-            (row["id"], row["prompt"])
-            for row in reader
-            if row.get("prompt", "").strip()
-        ]
-
     total = len(rows)
-    print(f"==> Loaded {total} prompts from {DATASET_PATH}")
-
-    # Load model & tokenizer once
-    print(f"\n{'='*60}")
-    print(f"Loading model: {model_name}")
-    print(f"{'='*60}")
-
-    tokenizer = AutoTokenizer.from_pretrained(model_name, token=HF_TOKEN)
-    if tokenizer.pad_token is None:
-        tokenizer.pad_token = tokenizer.eos_token
-
-    model = AutoModelForCausalLM.from_pretrained(
-        model_name,
-        torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
-        device_map="auto",
-        token=HF_TOKEN,
-    )
-    model.eval()
-    print("==> Model loaded\n")
-
-    # Open output CSV and write results row by row
     output_fields = [
         "prompt_id", "input_tokens", "output_tokens",
         "response_sec", "tokens_per_sec",
@@ -343,13 +309,50 @@ def main(model_name: str, run_number: int):
                 writer.writerow({"prompt_id": prompt_id, **{k: "" for k in output_fields if k != "prompt_id"}})
                 out_f.flush()
 
-    # Free model and tokenizer from GPU memory before next model loads
-    del model
-    del tokenizer
-    if torch.cuda.is_available():
-        torch.cuda.empty_cache()
+    print(f"==> Done. Results saved to: {output_path}")
 
-    print(f"\n==> Done. Results saved to: {output_path}")
+
+def main():
+    if not DATASET_PATH or not os.path.isfile(DATASET_PATH):
+        raise FileNotFoundError(f"Dataset not found at: {DATASET_PATH}")
+
+    with open(DATASET_PATH, newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        rows = [(row["id"], row["prompt"]) for row in reader if row.get("prompt", "").strip()]
+
+    print(f"==> Loaded {len(rows)} prompts from {DATASET_PATH}")
+
+    NUM_RUNS = int(os.getenv("NUM_RUNS", "10"))
+    for model_name in MODEL_NAMES:
+
+        # Load model once for this model
+        print(f"\n{'='*60}")
+        print(f"Loading model: {model_name}")
+        print(f"{'='*60}")
+        tokenizer = AutoTokenizer.from_pretrained(model_name, token=HF_TOKEN)
+        if tokenizer.pad_token is None:
+            tokenizer.pad_token = tokenizer.eos_token
+        model = AutoModelForCausalLM.from_pretrained(
+            model_name,
+            torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
+            device_map="auto",
+            token=HF_TOKEN,
+        )
+        model.eval()
+        print("==> Model loaded\n")
+
+        # Do all runs with this model
+        for run_number in range(1, NUM_RUNS + 1):
+            print(f"\n--- {model_name}  |  Run {run_number}/{NUM_RUNS} ---")
+            run_one(model_name, run_number, model, tokenizer, rows)
+
+        # Free memory before loading next model
+        del model
+        del tokenizer
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        print(f"\n==> Model {model_name} unloaded.")
+
 
 if __name__ == "__main__":
     if not MODEL_NAMES:
@@ -358,8 +361,4 @@ if __name__ == "__main__":
             "Set it as a comma-separated list, e.g.: "
             "'meta-llama/Llama-3.1-8B-Instruct,mistralai/Mistral-7B-v0.1'"
         )
-    NUM_RUNS = int(os.getenv("NUM_RUNS", "10"))
-    for model_name in MODEL_NAMES:
-        for run_number in range(1, NUM_RUNS + 1):
-            print(f"\n--- {model_name}  |  Run {run_number}/{NUM_RUNS} ---")
-            main(model_name, run_number)
+    main()
