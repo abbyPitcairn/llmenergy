@@ -7,6 +7,7 @@ torch>=2.0
 transformers>=4.0.0
 accelerate>=0.2.0
 pyRAPL>=0.2.3
+pynvml
 
 #Optional requirements for data visualization
 matplotlib
