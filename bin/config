@@ -17,7 +17,7 @@ export HF_TOKEN=""
 
 # ── Model ─────────────────────────────────────────────────────────────────────
 # HuggingFace model ID to benchmark.
-export MODEL_NAMES="meta-llama/Llama-3.1-8B-Instruct openai-community/gpt2 Qwen/Qwen2.5-7B-Instruct"
+export MODEL_NAMES="meta-llama/Llama-3.1-8B-Instruct, openai-community/gpt2, Qwen/Qwen2.5-7B-Instruct"
 # Maximum number of tokens that may appear in a prompt or a response.
 export MAX_TOKENS=256
 

@@ -18,10 +18,10 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 # Load environment variables, type cast if necessary
-MODEL_NAME = os.getenv("MODEL_NAME")
+MODEL_NAMES = [m.strip() for m in (os.getenv("MODEL_NAMES") or "").split(",") if m.strip()]
 HF_TOKEN = os.getenv("HF_TOKEN")
 DATASET_PATH = os.getenv("DATASET_PATH")
-OUTPUT_PATH = os.getenv("OUTPUT_PATH")
+OUTPUT_DIR = os.getenv("OUTPUT_DIR", "../Results")
 CPU_TDP_WATTS = float(os.getenv("CPU_TDP_WATTS", "150"))
 MAX_NEW_TOKENS = int(os.getenv("MAX_NEW_TOKENS", "256"))
 
@@ -277,7 +277,12 @@ def run_prompt(prompt_id: str, prompt: str, model, tokenizer) -> dict:
     }
 
 # ── Main ──────────────────────────────────────────────────────────────────────
-def main():
+def main(model_name: str, run_number: int):
+    # Build output path from OUTPUT_DIR, model name, and run number
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    safe_model_name = model_name.replace("/", "_")
+    output_path = os.path.join(OUTPUT_DIR, f"{safe_model_name}_run_{run_number:02d}.csv")
+
     # Load prompts from CSV
     if not DATASET_PATH or not os.path.isfile(DATASET_PATH):
         raise FileNotFoundError(f"Dataset not found at: {DATASET_PATH}")
@@ -295,15 +300,15 @@ def main():
 
     # Load model & tokenizer once
     print(f"\n{'='*60}")
-    print(f"Loading model: {MODEL_NAME}")
+    print(f"Loading model: {model_name}")
     print(f"{'='*60}")
 
-    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, token=HF_TOKEN)
+    tokenizer = AutoTokenizer.from_pretrained(model_name, token=HF_TOKEN)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
     model = AutoModelForCausalLM.from_pretrained(
-        MODEL_NAME,
+        model_name,
         torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
         device_map="auto",
         token=HF_TOKEN,
@@ -321,7 +326,8 @@ def main():
         "peak_gpu_mem_mb", "peak_cpu_mem_mb", "carbon_kg",
     ]
 
-    with open(OUTPUT_PATH, "w", newline="", encoding="utf-8") as out_f:
+    print(f"    Output: {output_path}")
+    with open(output_path, "w", newline="", encoding="utf-8") as out_f:
         writer = csv.DictWriter(out_f, fieldnames=output_fields)
         writer.writeheader()
 
@@ -337,7 +343,17 @@ def main():
                 writer.writerow({"prompt_id": prompt_id, **{k: "" for k in output_fields if k != "prompt_id"}})
                 out_f.flush()
 
-    print(f"\n==> Done. Results saved to: {OUTPUT_PATH}")
+    print(f"\n==> Done. Results saved to: {output_path}")
 
 if __name__ == "__main__":
-    main()
+    if not MODEL_NAMES:
+        raise ValueError(
+            "MODEL_NAMES environment variable is not set or empty. "
+            "Set it as a comma-separated list, e.g.: "
+            "'meta-llama/Llama-3.1-8B-Instruct,mistralai/Mistral-7B-v0.1'"
+        )
+    NUM_RUNS = int(os.getenv("NUM_RUNS", "10"))
+    for model_name in MODEL_NAMES:
+        for run_number in range(1, NUM_RUNS + 1):
+            print(f"\n--- {model_name}  |  Run {run_number}/{NUM_RUNS} ---")
+            main(model_name, run_number)
