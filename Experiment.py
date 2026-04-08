@@ -13,7 +13,7 @@ import subprocess
 import platform
 from typing import Optional, Tuple
 import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer, AutoModelForCausalLM, GenerationConfig
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -249,14 +249,14 @@ def run_prompt(prompt_id: str, prompt: str, model, tokenizer) -> dict:
     monitor.start()
     t0 = time.perf_counter()
 
+    gen_config = GenerationConfig(
+        max_new_tokens=MAX_NEW_TOKENS,
+        pad_token_id=tokenizer.pad_token_id,
+        eos_token_id=tokenizer.eos_token_id,
+        no_repeat_ngram_size=3,
+    )
     with torch.no_grad():
-        outputs = model.generate(
-            **inputs,
-            max_new_tokens=MAX_NEW_TOKENS,
-            pad_token_id=tokenizer.pad_token_id,
-            eos_token_id=tokenizer.eos_token_id,
-            no_repeat_ngram_size=3,
-        )
+        outputs = model.generate(**inputs, generation_config=gen_config)
 
     t1 = time.perf_counter()
     monitor.stop()
@@ -366,7 +366,9 @@ def main():
             model_name,
             torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
             device_map="auto",
+            offload_buffers=True, # for large models
             token=HF_TOKEN,
+            no_repeat_ngram_size=3
         )
         model.eval()
         print("==> Model loaded\n")
