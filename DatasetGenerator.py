@@ -316,8 +316,8 @@ def main():
     ]
 
     # Save dataset to CSV
-    combined.to_csv(OUTPUT_CSV, index=False)
-    print(f"\nSaved combined dataset with {len(combined)} rows to: {OUTPUT_CSV}")
+    combined.to_csv(DATASET_PATH, index=False)
+    print(f"\nSaved combined dataset with {len(combined)} rows to: {DATASET_PATH}")
 
     # Breakdown by origin for a quick sanity check
     print("\nPrompt counts by origin:")
