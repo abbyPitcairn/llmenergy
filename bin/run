@@ -5,7 +5,7 @@ set -eo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
-# ── Load config ──────────────────────────────────────────────────────────────
+# ── Load config ───────────────────────────────────────────────────────────────
 config="$REPO_ROOT/bin/config"
 if [[ ! -f "$config" ]]; then
   echo "ERROR: bin/config not found. Expected at: $config"
@@ -15,7 +15,27 @@ fi
 source "$config"
 echo "==> config loaded from bin/config"
 
-# ── Use existing virtual environment or create a new one ────────────────────
+# ── Export config as env vars for all Python scripts ─────────────────────────
+export HF_TOKEN="$HF_TOKEN"
+
+export MODEL_NAMES="$MODEL_NAMES"
+
+export LLM_PROMPTS_CSV="$LLM_PROMPTS_CSV"
+export DATASET_PATH="$DATASET_PATH"
+export OUTPUT_DIR="$OUTPUT_DIR"
+
+export SAMPLES_PER_DATASET="$SAMPLES_PER_DATASET"
+export LLM_PROMPT_TARGET="$LLM_PROMPT_TARGET"
+export MAX_PROMPT_WORDS="$MAX_PROMPT_WORDS"
+
+export MAX_TOKENS="$MAX_TOKENS"
+export CPU_TDP_WATTS="$CPU_TDP_WATTS"
+export POWER_INTERVAL_MS="$POWER_INTERVAL_MS"
+export NUM_RUNS="$NUM_RUNS"
+
+export RANDOM_SEED="$RANDOM_SEED"
+
+# ── Use existing virtual environment or create a new one ─────────────────────
 VENV="$REPO_ROOT/.venv"
 ACTIVATE="$VENV/bin/activate"
 
@@ -41,26 +61,24 @@ fi
 
 # ── Always ensure requirements are satisfied ──────────────────────────────────
 echo "==> Syncing requirements"
-"$VENV/bin/python" -m pip install --upgrade pip
-"$VENV/bin/python" -m pip install -r "$REPO_ROOT/requirements.txt"
+"$VENV/bin/python" -m pip install --upgrade pip --quiet
+"$VENV/bin/python" -m pip install -r "$REPO_ROOT/requirements.txt" --quiet
 
 # Explicit path to Python in the venv
 PYTHON="$VENV/bin/python"
 
-# ── Validate dataset ──────────────────────────────────────────────────────────
-"$PYTHON" DatasetGenerator.py
+# ── Generate dataset ──────────────────────────────────────────────────────────
+"$PYTHON" "$REPO_ROOT/DatasetGenerator.py"
 if [[ ! -f "$DATASET_PATH" ]]; then
   echo ""
   echo "ERROR: Dataset not found at: $DATASET_PATH"
-  echo ""
-  echo "  Generate it first by running:"
-  echo "    python DatasetGenerator.py"
+  echo "  DatasetGenerator.py ran but did not produce the expected file."
   echo ""
   exit 1
 fi
 echo "==> Dataset found: $DATASET_PATH"
 
-# ── Validate HF token (warn if missing; model download may still work from cache) ──
+# ── Validate HF token ────────────────────────────────────────────────────────
 if [[ -z "${HF_TOKEN:-}" ]]; then
   echo "    [WARN] HF_TOKEN is not set in bin/config."
   echo "           Falling back to cached huggingface-cli credentials."
@@ -68,7 +86,7 @@ if [[ -z "${HF_TOKEN:-}" ]]; then
 fi
 
 # ── Create output directory if needed ────────────────────────────────────────
-OUTPUT_DIR="$(dirname "$OUTPUT_PATH")"
+OUTPUT_DIR="$(dirname "$OUTPUT_DIR")"
 if [[ "$OUTPUT_DIR" != "." && ! -d "$OUTPUT_DIR" ]]; then
   mkdir -p "$OUTPUT_DIR"
   echo "==> Created output directory: $OUTPUT_DIR"
@@ -92,28 +110,11 @@ echo ""
 echo "==> Starting experiment"
 echo "    Model         : $MODEL_NAME"
 echo "    Dataset       : $DATASET_PATH"
-echo "    Output        : $OUTPUT_PATH"
-echo "    Max new tokens: $MAX_NEW_TOKENS"
+echo "    Max new tokens: $MAX_TOKENS"
 echo "    CPU TDP (W)   : $CPU_TDP_WATTS"
 echo ""
 
-# Export config as env vars for the Python script
-export HF_TOKEN="$HF_TOKEN"
-export MODEL_NAME="$MODEL_NAME"
-export MAX_NEW_TOKENS="$MAX_NEW_TOKENS"
-export DATASET_PATH="$DATASET_PATH"
-export OUTPUT_PATH="$OUTPUT_PATH"
-export CPU_TDP_WATTS="$CPU_TDP_WATTS"
-export POWER_INTERVAL_MS="$POWER_INTERVAL_MS"
-export LLM_PROMPTS_CSV="$LLM_PROMPTS_CSV"
-export OUTPUT_CSV="$OUTPUT_CSV"
-export RANDOM_SEED="$RANDOM_SEED"
-export SAMPLES_PER_DATASET="$SAMPLES_PER_DATASET"
-export LLM_PROMPT_TARGET="$LLM_PROMPT_TARGET"
-export MAX_PROMPT_WORDS="$MAX_PROMPT_WORDS"
-
-# Run experiment
-"$PYTHON" "$REPO_ROOT/llama_single_prompt.py"
+"$PYTHON" "$REPO_ROOT/Experiment.py"
 
 echo ""
-echo "==> Experiment complete. Results saved to: $OUTPUT_PATH"
+echo "==> Experiment complete. Results saved to: $OUTPUT_DIR"

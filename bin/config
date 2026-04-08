@@ -18,8 +18,7 @@ export HF_TOKEN=""
 # ── Model ─────────────────────────────────────────────────────────────────────
 # HuggingFace model ID to benchmark.
 export MODEL_NAMES="meta-llama/Llama-3.1-8B-Instruct openai-community/gpt2 Qwen/Qwen2.5-7B-Instruct"
-
-# Maximum number of new tokens the model may generate per prompt.
+# Maximum number of tokens that may appear in a prompt or a response.
 export MAX_TOKENS=256
 
 # ── Dataset ───────────────────────────────────────────────────────────────────
@@ -34,7 +33,7 @@ export DATASET_PATH="Data/dataset.csv"
 
 # ── Output ────────────────────────────────────────────────────────────────────
 # Path where experiment results will be written.
-export OUTPUT_PATH="results.csv"
+export OUTPUT_DIR="Results"
 
 # ── Hardware ──────────────────────────────────────────────────────────────────
 # CPU Thermal Design Power (TDP) in Watts.
@@ -57,4 +56,4 @@ export POWER_INTERVAL_MS=500
 export NUM_RUNS=10
 
 # ── Random Seed ───────────────────────────────────────────
-RANDOM_SEED=42
+export RANDOM_SEED=42

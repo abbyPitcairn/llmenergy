@@ -36,6 +36,31 @@ Graphs will save to `DataVisualization/Graphs` as .pdf.
 
 **Note:** data visualization can be done separately from the main experiment and does not require the dataset to be explicitly generated, because running the `GenerateAll.py` script will re-generate the dataset. 
 
+
+### Configuration
+
+In the `config` file you will need to set your HuggingFace access token, otherwise gated models will not be downloaded in the experiment.
+
+Other settings in `config`:
+
+* MODEL_NAMES: space-separated string of model ID's from HuggingFace. See models section below.
+* MAX_TOKENS: maximum number of tokens for a prompt and response. This helps keep computation cost reasonable. Default = 256.
+* SAMPLES_PER_DATASET: number of prompts per HuggingFace dataset that get added to our final dataset. Default = 100.
+* LLM_PROMPT_TARGET: number of prompts in the LLM-generated prompt file. This just checks that we have the correct number of prompts. Default = 500.
+* LLM_PROMPTS_CSV: path to the LLM-generated prompt file. Default = "Data/AI_generated_prompts.csv".
+* DATASET_PATH: path to the final combined dataset. This is output for `DatasetGenerator` and input for `Experiment`. Default ="Data/dataset.csv".
+* OUTPUT_DIR: directory to store energy measurement result files in. Default ="Results".
+* CPU_TDP_WATTS: fallback estimate for CPU power if `pyRAPL` is not available. Default = 150.
+* POWER_INTERVAL_MS: how often, in milliseconds, `PowerMonitor` queries for CPU/GPU wattage. Default = 500.
+* NUM_RUNS: number of times that each model goes through the entire prompt set. This allows us to average each prompt over ten runs for more accurate results. Default = 10.
+* RANDOM_SEED: for reproducibility. Default = 42.
+
+### Models
+
+* **LLaMA:** meta-llama/Llama-3.1-8B-Instruct 
+* **GPT2:** openai-community/gpt2 
+* **Qwen:** Qwen/Qwen2.5-7B-Instruct
+
 ### Dataset
 
 In the dataset file, there are seven columns: 
@@ -89,4 +114,5 @@ it will get cut off. This helps give a more accurate final response, since most 
 * **March 10, 2026:** Added Data Visualization Scripts for Graph Generation
 * **March 23, 2026:** Data Visualization Update, Initial Experiment Script Upload
 * **April 7, 2026:** Moved all files to a new repository due to a broken remote connection, implemented a single prompt experiment. 
+* **April 8, 2026:** First implementation of a full working experiment, runnable from ./bin/run. 
 * **May 5, 2026:** Projected Final Release Date

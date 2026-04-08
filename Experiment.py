@@ -18,9 +18,9 @@ MODEL_NAMES  = os.getenv("MODEL_NAMES", "").split()
 HF_TOKEN     = os.getenv("HF_TOKEN")
 DATASET_PATH = os.getenv("DATASET_PATH")
 OUTPUT_DIR   = os.getenv("OUTPUT_DIR", "Results")
-CPU_TDP_WATTS  = float(os.getenv("CPU_TDP_WATTS", "150"))
-MAX_NEW_TOKENS = int(os.getenv("MAX_NEW_TOKENS",  "256"))
-NUM_RUNS       = int(os.getenv("NUM_RUNS",         "10"))
+CPU_TDP_WATTS  = float(os.getenv("CPU_TDP_WATTS") or 150.0)
+MAX_TOKENS = int(os.getenv("MAX_TOKENS") or 256)
+NUM_RUNS       = int(os.getenv("NUM_RUNS") or 10)
 
 # ── Optional dependencies ─────────────────────────────────────────────────────
 try:
@@ -229,7 +229,7 @@ def run_prompt(prompt_id: str, prompt: str, model, tokenizer) -> dict:
     with torch.no_grad():
         outputs = model.generate(
             **inputs,
-            max_new_tokens=MAX_NEW_TOKENS,
+            MAX_TOKENS=MAX_TOKENS,
             pad_token_id=tokenizer.pad_token_id,
             no_repeat_ngram_size=3
         )

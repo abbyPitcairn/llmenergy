@@ -22,17 +22,17 @@ Output columns:
 import os
 import json
 import pandas as pd
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Tuple
 import re
 import datasets
 
 # ── Load config from environment ────────────────────────────
 LLM_PROMPTS_CSV:     Optional[str] = os.getenv("LLM_PROMPTS_CSV") or None
-OUTPUT_CSV:          str           = os.getenv("OUTPUT_CSV", "Data/dataset.csv")
+DATASET_PATH:          str           = os.getenv("DATASET_PATH") or "Data/dataset.csv"
 RANDOM_SEED:         int           = int(os.getenv("RANDOM_SEED") or "42")
 SAMPLES_PER_DATASET: int           = int(os.getenv("SAMPLES_PER_DATASET") or "100")
 LLM_PROMPT_TARGET:   int           = int(os.getenv("LLM_PROMPT_TARGET") or "500")
-MAX_PROMPT_WORDS:    int           = int(os.getenv("MAX_PROMPT_WORDS") or "250")
+MAX_TOKENS:    int           = int(os.getenv("MAX_TOKENS") or "256")
 
 # ── Load HF dataset configs from bin/datasets.json ───────────────────────────
 _REPO_ROOT   = os.path.dirname(os.path.abspath(__file__))
@@ -112,14 +112,14 @@ def extract_prompt_from_example(example: dict, candidates: List[str]) -> Optiona
 def is_valid_prompt(text: Optional[str]) -> Tuple[bool, int]:
     """
     Validate a prompt and return (is_valid, word_count).
-    A prompt is valid if it is a non-empty string within MAX_PROMPT_WORDS.
+    A prompt is valid if it is a non-empty string within MAX_TOKENS.
     Word count is computed immediately on the raw text before any cleaning,
     so that length filtering happens at download time.
     """
     if not text or not isinstance(text, str):
         return False, 0
     word_count = compute_word_count(text)
-    if word_count == 0 or word_count > MAX_PROMPT_WORDS:
+    if word_count == 0 or word_count > MAX_TOKENS:
         return False, word_count
     return True, word_count
 
@@ -128,7 +128,7 @@ def load_hf_prompts() -> pd.DataFrame:
     """
     Load exactly SAMPLES_PER_DATASET valid prompts from each configured
     HuggingFace dataset. A prompt is valid if it is non-empty and does not
-    exceed MAX_PROMPT_WORDS (checked immediately on the raw downloaded text).
+    exceed MAX_TOKENS (checked immediately on the raw downloaded text).
 
     The dataset is shuffled and iterated in order; if a prompt is too long
     or missing, the next candidate in the shuffled dataset is used as a
@@ -184,7 +184,7 @@ def load_hf_prompts() -> pd.DataFrame:
             valid, word_count = is_valid_prompt(prompt_text)
 
             if not valid:
-                if word_count > MAX_PROMPT_WORDS:
+                if word_count > MAX_TOKENS:
                     skipped_too_long += 1
                 else:
                     skipped_no_text += 1
@@ -220,7 +220,7 @@ def load_llm_prompts(csv_path: str) -> pd.DataFrame:
     Load exactly LLM_PROMPT_TARGET valid prompts from the AI-generated CSV.
 
     - Word count is computed immediately on the raw prompt text.
-    - Prompts that are empty or exceed MAX_PROMPT_WORDS are skipped (replaced
+    - Prompts that are empty or exceed MAX_TOKENS are skipped (replaced
       by the next row in the file).
     - If the CSV contains more than LLM_PROMPT_TARGET valid prompts, only the
       first LLM_PROMPT_TARGET are kept.
@@ -250,7 +250,7 @@ def load_llm_prompts(csv_path: str) -> pd.DataFrame:
 
     # Filter: remove empty or over-length prompts (replacement by next valid row)
     total_raw = len(df)
-    valid_mask = (df["prompt_length"] > 0) & (df["prompt_length"] <= MAX_PROMPT_WORDS)
+    valid_mask = (df["prompt_length"] > 0) & (df["prompt_length"] <= MAX_TOKENS)
     skipped = (~valid_mask).sum()
     df = df[valid_mask].reset_index(drop=True)
 
