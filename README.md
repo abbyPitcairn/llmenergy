@@ -55,7 +55,7 @@ Other settings in `config`:
 * OUTPUT_DIR: directory to store energy measurement result files in. Default ="Results".
 * CPU_TDP_WATTS: fallback estimate for CPU power if `pyRAPL` is not available. Default = 150.
 * POWER_INTERVAL_MS: how often, in milliseconds, `PowerMonitor` queries for CPU/GPU wattage. Default = 500.
-* NUM_RUNS: number of times that each model goes through the entire prompt set. This allows us to average each prompt over ten runs for more accurate results. Default = 10.
+* NUM_RUNS: number of times that each model goes through the entire prompt set. This allows us to average each prompt over ten runs for more accurate results. Default = 5.
 * RANDOM_SEED: for reproducibility. Default = 42.
 
 ### Models

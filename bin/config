@@ -53,7 +53,7 @@ export POWER_INTERVAL_MS=500
 
 # ── Number of Runs ───────────────────────────────────────────
 # How many times to run the full experiment, per model.
-export NUM_RUNS=10
+export NUM_RUNS=5
 
 # ── Random Seed ───────────────────────────────────────────
 export RANDOM_SEED=42
