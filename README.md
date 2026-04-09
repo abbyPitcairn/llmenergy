@@ -27,7 +27,13 @@ To run the program:
 ./bin/run
 ```
 
-To generate the six data visualization plots, run the command:
+To run the analysis script on one of the output files, navigate to the `Results` directory and use the command:
+
+```
+python analyze_results.py --input results.csv
+```
+
+To generate the six dataset visualization plots, run the command:
 
 ```
 python DataVisualization/GenerateAll.py
