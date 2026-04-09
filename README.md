@@ -75,7 +75,7 @@ In the dataset file, there are seven columns:
 
 HuggingFace datasets used:
 
-* `HuggingFaceH4/MATH-50`
+* `HuggingFaceH4/MATH-500`
 * `cais/mmlu`
 * `openai/openai_humaneval`
 * `crownelius/Opus-4.6-Reasoning-3300x`
