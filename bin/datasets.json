@@ -5,7 +5,7 @@
         "prompt_fields": ["problem"],
         "task_type": 4,
         "complexity": 2,
-        "origin": "MATH-500"
+        "origin": "MATH"
     },
     {
         "name": "cais/mmlu",
@@ -23,7 +23,7 @@
         "prompt_fields": ["prompt"],
         "task_type": 4,
         "complexity": 2,
-        "origin": "HumanEval"
+        "origin": "HE"
     },
     {
         "name": "crownelius/Opus-4.6-Reasoning-3300x",
@@ -32,7 +32,7 @@
         "prompt_fields": ["problem"],
         "task_type": 2,
         "complexity": 2,
-        "origin": "OpusReasoning"
+        "origin": "Opus"
     },
     {
         "name": "google/simpleqa-verified",
@@ -41,5 +41,5 @@
         "prompt_fields": ["problem"],
         "task_type": 1,
         "complexity": 0,
-        "origin": "SimpleQA"
+        "origin": "QA"
     }]
