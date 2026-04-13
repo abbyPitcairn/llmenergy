@@ -131,6 +131,7 @@ Using a linux server equipped with an Intel Xeon Gold 5215 (10-core, 2.50 GHz), 
 ## Authors
 
 * **Lead Author:** Abigail Pitcairn [abigail.pitcairn@maine.edu]
+* **Advisor:** Behrooz Mansouri [behrooz.mansouri@maine.edu]
 
 ## Release History
 
