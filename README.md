@@ -1,6 +1,8 @@
 # LLM Energy Consumption - Experimental Research
 
-The aim of this research is to discover the average energy cost of prompting an LLM for text-to-text generation. The projected final release date for this project is May 5, 2026.
+The aim of this research is to discover the average energy cost of a single LLM text-to-text-generation prompt. 
+
+The projected final release date for this project is May 5, 2026.
 
 ## Description
 
