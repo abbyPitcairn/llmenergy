@@ -10,6 +10,8 @@ First, we develop a dataset representative of the average LLM prompt by combinin
 
 The dataset is made of 500 AI-generated prompts and 500 prompts pulled from verified online datasets. For online datasets, five were selected from the most downloaded page on `HuggingFace.com` with datasets filtered for text-to-text generation and question-answering tasks; then, 100 rows were taken from each dataset using a random seed. The AI-generated prompts come from ChatGPT's online API and must be generated, saved and uploaded separately as a .csv file at `Data/AI_generated_prompts.csv`. See the dataset and experiment sections below for more details about the process. 
 
+Please note that the full experiment pipeline takes approximately four hours to execute. See the experiment section below for hardware details. 
+
 ## Execution
 
 ### Main Experiment
@@ -112,15 +114,19 @@ In initial experiments, models tried to always generate the maximum number of to
 To mitigate this, in our model outputs we set `no_repeat_ngram_size=3`. This way, if our model starts generating very repetitive output, 
 it will get cut off. This helps give a more accurate final response, since most conversational LLMs don't repeat themselves as much as the "instruct" versions of models. 
 
-**Experiment Outline:**
+### Experiment Outline
 
 * For each of three models:
-  * Repeat the experiment ten times to normalize:
+  * Repeat the experiment 5 times to normalize:
     * Run 1,000 prompts through the model:
       * For each prompt, we record:
         * Power consumption in CPU and GPU
         * Estimated total FLOPs (floating-point operations)
         * Memory usage in CPU and GPU
+
+### Hardware Specifications
+
+Using a linux server equipped with an Intel Xeon Gold 5215 (10-core, 2.50 GHz), 64 GB RAM, and dual NVIDIA GeForce RTX 2080 Ti GPUs, running Ubuntu 22.04.5 LTS, the full experiment with five runs for each of three models takes approximately **four hours** to execute. 
 
 ## Authors
 
