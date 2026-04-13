@@ -2,9 +2,9 @@
 
 The aim of this research is to discover the average energy cost of prompting an LLM for text-to-text generation. The projected final release date for this project is May 5, 2026.
 
-### Description
+## Description
 
-First, we develop a dataset representative of the average LLM prompt and then test the energy cost by running this set of prompts through a handful of different LLMs. Finally, these experimental results will be analyzed and a final estimate of energy cost will be given in Watts per hour. 
+First, we develop a dataset representative of the average LLM prompt by combining popular HuggingFace datasets with LLM-generated prompts. Then we attempt to measure the average energy cost of a single prompt to an LLM by running this set of 1,000 total prompts through three different popular models. We query the hardware for CPU/GPU usage every 0.5 seconds and average over the full model response time. Finally, the results are analyzed and a final estimate of energy cost is given in Watts per hour. 
 
 The dataset is made of 500 AI-generated prompts and 500 prompts pulled from verified online datasets. For online datasets, five were selected from the most downloaded page on `HuggingFace.com` with datasets filtered for text-to-text generation and question-answering tasks; then, 100 rows were taken from each dataset using a random seed.
 
@@ -12,7 +12,9 @@ The AI-generated prompts come from ChatGPT's online API and must be generated, s
 
 `DatasetGenerator.py` will create the complete dataset from this saved .csv and using the HuggingFace API. 
 
-### Execution
+## Execution
+
+### Main Experiment
 
 To run the program:
 
@@ -27,11 +29,20 @@ To run the program:
 ./bin/run
 ```
 
-To run the analysis script on one of the output files, navigate to the `Results` directory and use the command:
+### Results Analysis
+
+To run the analysis script on one of the output files, navigate to the `Results` directory and use the following command. 
+
+Parameters:
+- `--input` specifies the results file you'd like to analyze.
+- `--k` specifies how many results you would like to see for the top-k highest and lowest values from each output column.
+- `--output` specifies where to save the script output to; format is a csv file. 
 
 ```
-python analyze_results.py --input results.csv
+python analyze_results.py --input results.csv --k 5
 ```
+
+### Data Visualization
 
 To generate the six dataset visualization plots, run the command:
 
@@ -44,7 +55,9 @@ Graphs will save to `DataVisualization/Graphs` as .pdf.
 **Note:** data visualization can be done separately from the main experiment and does not require the dataset to be explicitly generated, because running the `GenerateAll.py` script will re-generate the dataset. 
 
 
-### Configuration
+## Configuration
+
+### config file
 
 In the `config` file you will need to set your HuggingFace access token, otherwise gated models will not be downloaded in the experiment.
 
@@ -68,7 +81,7 @@ Other settings in `config`:
 * **GPT2:** openai-community/gpt2 
 * **Qwen:** Qwen/Qwen2.5-7B
 
-### Dataset
+## Dataset
 
 In the dataset file, there are seven columns: 
 * **ID**: identifying number for the prompt, assigned based on row number. 
@@ -79,7 +92,7 @@ In the dataset file, there are seven columns:
 * **Complexity**: an annotation by the author to sort prompts by complexity of the task: 0 - low complexity, 1 - medium, 2 - high.
 * **Origin**: the origin of the prompt; either ChatGPT or the name of the HuggingFace dataset.
 
-HuggingFace datasets used:
+### HuggingFace Datasets
 
 * `HuggingFaceH4/MATH-500`
 * `cais/mmlu`
@@ -87,7 +100,7 @@ HuggingFace datasets used:
 * `crownelius/Opus-4.6-Reasoning-3300x`
 * `google/simpleqa-verified`
 
-#### Example Data:
+### Example Data:
 
 | Prompt | Prompt Length | Task Type | Complexity | Output Length | Origin |
 |------|------|------|------|------|------|
@@ -95,7 +108,7 @@ HuggingFace datasets used:
 | Who was known for playing the trombone for The Jazzmen at the time of Kenny Ball's death? | 17 | 1 | 1 |0 | SimpleQA |
 | Where should I go on vacation? | 6 | 0 | 1 |0 | ChatGPT |
 
-### Experiment
+## Experiment
 
 In initial experiments, models tried to always generate the maximum number of tokens, even if the final output ends up being the same phrase repeated 10-20 times. 
 To mitigate this, in our model outputs we set `no_repeat_ngram_size=3`. This way, if our model starts generating very repetitive output, 
@@ -111,15 +124,16 @@ it will get cut off. This helps give a more accurate final response, since most 
         * Estimated total FLOPs (floating-point operations)
         * Memory usage in CPU and GPU
 
-### Authors
+## Authors
 
 * **Lead Author:** Abigail Pitcairn [abigail.pitcairn@maine.edu]
 
-### Release History
+## Release History
 
 * **March 4, 2026:** Initial Release of Dataset Generator
 * **March 10, 2026:** Added Data Visualization Scripts for Graph Generation
 * **March 23, 2026:** Data Visualization Update, Initial Experiment Script Upload
 * **April 7, 2026:** Moved all files to a new repository due to a broken remote connection, implemented a single prompt experiment. 
-* **April 8, 2026:** First implementation of a full working experiment, runnable from ./bin/run. 
+* **April 8, 2026:** First implementation of a full working experiment, runnable from ./bin/run.
+* **April 13, 2026:** Updated Experiment.py to run on only one GPU, significantly reducing overall experiment runtime. 
 * **May 5, 2026:** Projected Final Release Date
