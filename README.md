@@ -128,10 +128,13 @@ it will get cut off. This helps give a more accurate final response, since most 
 
 Using a linux server equipped with an Intel Xeon Gold 5215 (10-core, 2.50 GHz), 64 GB RAM, and dual NVIDIA GeForce RTX 2080 Ti GPUs, running Ubuntu 22.04.5 LTS, the full experiment with five runs for each of three models takes approximately **four hours** to execute. 
 
+## AI Usage
+
+Anthropic's Sonnet 4.6 model, also known as Claude.ai, was used in the production of this code. 
+
 ## Authors
 
 * **Lead Author:** Abigail Pitcairn [abigail.pitcairn@maine.edu]
-* **Advisor:** Behrooz Mansouri [behrooz.mansouri@maine.edu]
 
 ## Release History
 
