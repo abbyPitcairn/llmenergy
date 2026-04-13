@@ -243,7 +243,7 @@ def load_llm_prompts(csv_path: str) -> pd.DataFrame:
     if "complexity" not in df.columns:
         df["complexity"] = pd.NA
 
-    df["origin"] = "ChatGPT"
+    df["origin"] = "GPT"
 
     # Compute word count immediately on raw downloaded text
     df["prompt_length"] = df["prompt"].apply(compute_word_count)
