@@ -106,6 +106,8 @@ def main():
             writer.writerow(["column", "average"])
             for col, avg in averages.items():
                 writer.writerow([col, avg])
+            for col, top in topk.items():
+                writer.writerow([col, top])
         print(f"\n==> Averages saved to {args.output}")
 
 if __name__ == "__main__":
