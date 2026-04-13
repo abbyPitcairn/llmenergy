@@ -130,7 +130,7 @@ Using a linux server equipped with an Intel Xeon Gold 5215 (10-core, 2.50 GHz), 
 
 ## AI Usage
 
-Anthropic's Sonnet 4.6 model, also known as Claude.ai, was used in the production of this code. 
+Anthropic's Sonnet 4.6 model, also known as Claude.ai, as well as OpenAI's free online version of ChatGPT were both used in the production of this code. ChatGPT, as mentioned in the dataset section, was also used in the creation of the dataset. 
 
 ## Authors
 
