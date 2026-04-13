@@ -13,7 +13,7 @@ import subprocess
 import platform
 from typing import Optional, Tuple
 import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM, GenerationConfig
+from transformers import AutoTokenizer, AutoModelForCausalLM, GenerationConfig, BitsAndBytesConfig
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -248,6 +248,9 @@ def get_peak_memory_mb() -> dict:
 
 # ── Run a single prompt ───────────────────────────────────────────────────────
 def run_prompt(prompt_id: str, prompt: str, model, tokenizer) -> dict:
+    if CUDA_AVAILABLE:
+        torch.cuda.empty_cache()  # <-- clear before each prompt
+
     inputs            = tokenizer(prompt, return_tensors="pt").to(model.device)
     input_token_count = inputs["input_ids"].shape[1]
 
@@ -267,6 +270,8 @@ def run_prompt(prompt_id: str, prompt: str, model, tokenizer) -> dict:
     with torch.no_grad():
         outputs = model.generate(**inputs, generation_config=gen_config)
 
+    if torch.cuda.is_available():
+        torch.cuda.synchronize()
     t1 = time.perf_counter()
     monitor.stop()
 
@@ -288,6 +293,12 @@ def run_prompt(prompt_id: str, prompt: str, model, tokenizer) -> dict:
     flops_per_token  = total_flops / output_token_count if output_token_count > 0 else 0.0
 
     mem = get_peak_memory_mb()
+
+    # Free GPU memory after each prompt
+    del inputs, outputs
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+        torch.cuda.synchronize()
 
     return {
         "prompt_id":        prompt_id,
@@ -334,7 +345,7 @@ def run_one(model_name: str, run_number: int, model, tokenizer, rows: list):
         writer.writeheader()
 
         for i, (prompt_id, prompt) in enumerate(rows, start=1):
-            if i % 50 == 0 or i == 1:
+            if i % 5 == 0 or i == 1:
                 print(f"  [{i:>4}/{total}] prompt_id={prompt_id}")
             try:
                 result = run_prompt(prompt_id, prompt, model, tokenizer)
@@ -367,6 +378,11 @@ def main():
         print(f"  Loading model: {model_name}")
         print(f"{'='*60}")
 
+        # Clear cache before loading model:
+        if CUDA_AVAILABLE:
+            torch.cuda.empty_cache()
+            torch.cuda.synchronize()
+
         tokenizer = AutoTokenizer.from_pretrained(model_name, token=HF_TOKEN)
         if tokenizer.pad_token is None:
             tokenizer.pad_token = tokenizer.eos_token
@@ -374,10 +390,9 @@ def main():
         model = AutoModelForCausalLM.from_pretrained(
             model_name,
             dtype=torch.float16 if CUDA_AVAILABLE else torch.float32,
-            device_map="auto",
-            offload_buffers=True, # for large models
             token=HF_TOKEN,
         )
+
         model.eval()
         print("==> Model loaded\n")
 
