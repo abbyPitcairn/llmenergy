@@ -16,6 +16,7 @@ import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM, GenerationConfig, BitsAndBytesConfig
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
+CUDA_LAUNCH_BLOCKING=1
 
 # ── Environment variables ─────────────────────────────────────────────────────
 MODEL_NAMES    = [m.strip() for m in (os.getenv("MODEL_NAMES") or "").split(",") if m.strip()]
@@ -247,9 +248,9 @@ def get_peak_memory_mb() -> dict:
 
 
 # ── Run a single prompt ───────────────────────────────────────────────────────
-def run_prompt(prompt_id: str, prompt: str, model, tokenizer) -> dict:
+def run_prompt(prompt_id: str, prompt: str, model, tokenizer, gen_config) -> dict:
     if CUDA_AVAILABLE:
-        torch.cuda.empty_cache()  # <-- clear before each prompt
+        torch.cuda.empty_cache()  # clear cache before each prompt
 
     inputs            = tokenizer(prompt, return_tensors="pt").to(model.device)
     input_token_count = inputs["input_ids"].shape[1]
@@ -261,12 +262,6 @@ def run_prompt(prompt_id: str, prompt: str, model, tokenizer) -> dict:
     monitor.start()
     t0 = time.perf_counter()
 
-    gen_config = GenerationConfig(
-        max_new_tokens=MAX_NEW_TOKENS,
-        pad_token_id=tokenizer.pad_token_id,
-        eos_token_id=tokenizer.eos_token_id,
-        no_repeat_ngram_size=3,
-    )
     with torch.no_grad():
         outputs = model.generate(**inputs, generation_config=gen_config)
 
@@ -333,7 +328,7 @@ OUTPUT_FIELDS = [
 
 
 # ── Run all prompts for one model / one run ───────────────────────────────────
-def run_one(model_name: str, run_number: int, model, tokenizer, rows: list):
+def run_one(model_name: str, run_number: int, model, tokenizer, rows: list, gen_config: dict):
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     safe_name   = model_name.replace("/", "_")
     output_path = os.path.join(OUTPUT_DIR, f"{safe_name}_run_{run_number:02d}.csv")
@@ -348,7 +343,7 @@ def run_one(model_name: str, run_number: int, model, tokenizer, rows: list):
             if i % 5 == 0 or i == 1:
                 print(f"  [{i:>4}/{total}] prompt_id={prompt_id}")
             try:
-                result = run_prompt(prompt_id, prompt, model, tokenizer)
+                result = run_prompt(prompt_id, prompt, model, tokenizer, gen_config)
                 writer.writerow(result)
             except Exception as e:
                 print(f"[ERROR] prompt_id={prompt_id}: {e}")
@@ -397,13 +392,18 @@ def main():
         model.eval()
         print("==> Model loaded\n")
 
+        gen_config = GenerationConfig(
+            max_new_tokens=MAX_NEW_TOKENS,
+            pad_token_id=tokenizer.pad_token_id,
+            eos_token_id=tokenizer.eos_token_id,
+            no_repeat_ngram_size=3,
+        )
+
         for run_number in range(1, NUM_RUNS + 1):
             print(f"\n--- {model_name}  |  Run {run_number}/{NUM_RUNS} ---")
-            run_one(model_name, run_number, model, tokenizer, rows)
+            run_one(model_name, run_number, model, tokenizer, rows, gen_config)
 
         del model, tokenizer
-        if CUDA_AVAILABLE:
-            torch.cuda.empty_cache()
         print(f"\n==> Model {model_name} unloaded.")
 
 
