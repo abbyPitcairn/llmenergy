@@ -128,9 +128,13 @@ it will get cut off. This helps give a more accurate final response, since most 
 
 Using a linux server equipped with an Intel Xeon Gold 5215 (10-core, 2.50 GHz), 64 GB RAM, and dual NVIDIA GeForce RTX 2080 Ti GPUs, running Ubuntu 22.04.5 LTS, the full experiment with five runs for each of three models takes approximately **four hours** to execute. 
 
+Due to budget constraints for this project, the server was a shared univerity server and therefore there was not enough space in memory for us to test the largest models, Qwen and Llama, before the final release of this project. Using a setup with more available GPU space, this pipeline should be fully functional and we hope that this code can be useful to others looking to experiment with other models and/or prompts. 
+
 ## AI Usage
 
 Anthropic's Sonnet 4.6 model, also known as Claude.ai, as well as OpenAI's free online version of ChatGPT were both used in the production of this code. ChatGPT, as mentioned in the dataset section, was also used in the creation of the dataset. 
+
+Sources: [https://claude.ai/], [https://chatgpt.com/]
 
 ## Authors
 
