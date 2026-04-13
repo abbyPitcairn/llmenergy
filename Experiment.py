@@ -11,13 +11,11 @@ import time
 import threading
 import subprocess
 import platform
-import pynvml
 from typing import Optional, Tuple
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM, GenerationConfig, BitsAndBytesConfig
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
-_NVML_HANDLES = [pynvml.nvmlDeviceGetHandleByIndex(0)]  # only GPU 0
 
 # ── Environment variables ─────────────────────────────────────────────────────
 MODEL_NAMES    = [m.strip() for m in (os.getenv("MODEL_NAMES") or "").split(",") if m.strip()]
