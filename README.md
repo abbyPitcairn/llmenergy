@@ -6,11 +6,7 @@ The aim of this research is to discover the average energy cost of prompting an 
 
 First, we develop a dataset representative of the average LLM prompt by combining popular HuggingFace datasets with LLM-generated prompts. Then we attempt to measure the average energy cost of a single prompt to an LLM by running this set of 1,000 total prompts through three different popular models. We query the hardware for CPU/GPU usage every 0.5 seconds and average over the full model response time. Finally, the results are analyzed and a final estimate of energy cost is given in Watts per hour. 
 
-The dataset is made of 500 AI-generated prompts and 500 prompts pulled from verified online datasets. For online datasets, five were selected from the most downloaded page on `HuggingFace.com` with datasets filtered for text-to-text generation and question-answering tasks; then, 100 rows were taken from each dataset using a random seed.
-
-The AI-generated prompts come from ChatGPT's online API and must be generated, saved and uploaded separately as a .csv file at `Data/AI_generated_prompts.csv`. 
-
-`DatasetGenerator.py` will create the complete dataset from this saved .csv and using the HuggingFace API. 
+The dataset is made of 500 AI-generated prompts and 500 prompts pulled from verified online datasets. For online datasets, five were selected from the most downloaded page on `HuggingFace.com` with datasets filtered for text-to-text generation and question-answering tasks; then, 100 rows were taken from each dataset using a random seed. The AI-generated prompts come from ChatGPT's online API and must be generated, saved and uploaded separately as a .csv file at `Data/AI_generated_prompts.csv`. See the dataset and experiment sections below for more details about the process. 
 
 ## Execution
 
