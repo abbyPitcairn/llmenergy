@@ -147,5 +147,6 @@ Sources: [https://claude.ai/], [https://chatgpt.com/]
 * **March 23, 2026:** Data Visualization Update, Initial Experiment Script Upload
 * **April 7, 2026:** Moved all files to a new repository due to a broken remote connection, implemented a single prompt experiment. 
 * **April 8, 2026:** First implementation of a full working experiment, runnable from ./bin/run.
-* **April 13, 2026:** Updated Experiment.py to run on only one GPU, significantly reducing overall experiment runtime. 
+* **April 13, 2026:** Updated Experiment.py to run on only one GPU, significantly reducing overall experiment runtime.
+* **April 27, 2026:** Uploaded drafts of the research paper and poster. 
 * **May 5, 2026:** Projected Final Release Date
